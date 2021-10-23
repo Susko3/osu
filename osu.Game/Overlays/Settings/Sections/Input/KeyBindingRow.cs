@@ -490,12 +490,13 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             {
                 base.LoadComplete();
 
-                gameHost.KeymapChanged += updateText;
+                updateText();
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
+                gameHost.KeymapChanged += updateText;
                 updateHoverState();
             }
 
@@ -527,6 +528,9 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
             private void updateText()
             {
+                if (!IsLoaded)
+                    return;
+
                 Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
             }
 
@@ -537,6 +541,13 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
                 KeyBinding.KeyCombination = newCombination;
                 updateText();
+            }
+
+            protected override void Dispose(bool isDisposing)
+            {
+                base.Dispose(isDisposing);
+
+                gameHost.KeymapChanged -= updateText;
             }
         }
     }
