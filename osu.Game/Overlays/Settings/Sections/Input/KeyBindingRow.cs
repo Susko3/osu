@@ -477,7 +477,6 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                     },
                     Text = new OsuSpriteText
                     {
-                        Font = OsuFont.Torus.With(size: 16),
                         Margin = new MarginPadding(5),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
