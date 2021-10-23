@@ -15,6 +15,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Platform;
 using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -427,6 +428,9 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             private OverlayColourProvider colourProvider { get; set; }
 
             [Resolved]
+            private GameHost gameHost { get; set; }
+
+            [Resolved]
             private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
 
             private bool isBinding;
@@ -486,8 +490,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             {
                 base.LoadComplete();
 
-                // this should be updated every keymap change
-                Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
+                gameHost.KeymapChanged += updateText;
             }
 
             [BackgroundDependencyLoader]
@@ -522,16 +525,18 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                 }
             }
 
+            private void updateText()
+            {
+                Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
+            }
+
             public void UpdateKeyCombination(KeyCombination newCombination)
             {
                 if (KeyBinding.RulesetID != null && !RealmKeyBindingStore.CheckValidForGameplay(newCombination))
                     return;
 
                 KeyBinding.KeyCombination = newCombination;
-
-                // should create a new KeyCombinationString() with the KeyCombination.
-                // or trigger change, same flow as when keyboard layout changes.
-                Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
+                updateText();
             }
         }
     }
