@@ -12,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
 using osu.Game.Database;
@@ -57,13 +58,16 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 
         public bool FilteringActive { get; set; }
 
+        [Resolved]
+        private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
+
         private OsuSpriteText text;
         private FillFlowContainer cancelAndClearButtons;
         private FillFlowContainer<KeyButton> buttons;
 
         private Bindable<bool> isDefault { get; } = new BindableBool(true);
 
-        public IEnumerable<string> FilterTerms => bindings.Select(b => b.KeyCombination.ReadableString()).Prepend(text.Text.ToString());
+        public IEnumerable<string> FilterTerms => bindings.Select(b => readableKeyCombinationProvider.GetReadableString(b.KeyCombination)).Prepend(text.Text.ToString());
 
         public KeyBindingRow(object action, List<RealmKeyBinding> bindings)
         {
@@ -422,6 +426,9 @@ namespace osu.Game.Overlays.Settings.Sections.Input
             [Resolved]
             private OverlayColourProvider colourProvider { get; set; }
 
+            [Resolved]
+            private ReadableKeyCombinationProvider readableKeyCombinationProvider { get; set; }
+
             private bool isBinding;
 
             public bool IsBinding
@@ -466,14 +473,21 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                     },
                     Text = new OsuSpriteText
                     {
-                        Font = OsuFont.Numeric.With(size: 10),
+                        Font = OsuFont.Torus.With(size: 16),
                         Margin = new MarginPadding(5),
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Text = keyBinding.KeyCombination.ReadableString(),
                     },
                     new HoverSounds()
                 };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                // this should be updated every keymap change
+                Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
             }
 
             [BackgroundDependencyLoader]
@@ -514,7 +528,10 @@ namespace osu.Game.Overlays.Settings.Sections.Input
                     return;
 
                 KeyBinding.KeyCombination = newCombination;
-                Text.Text = KeyBinding.KeyCombination.ReadableString();
+
+                // should create a new KeyCombinationString() with the KeyCombination.
+                // or trigger change, same flow as when keyboard layout changes.
+                Text.Text = readableKeyCombinationProvider.GetReadableString(KeyBinding.KeyCombination);
             }
         }
     }
