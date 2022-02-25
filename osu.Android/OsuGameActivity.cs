@@ -1,7 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,13 +8,10 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Graphics;
 using Android.OS;
 using Android.Provider;
-using Android.Views;
 using osu.Framework.Android;
 using osu.Game.Database;
-using Debug = System.Diagnostics.Debug;
 using Uri = Android.Net.Uri;
 
 namespace osu.Android
@@ -44,11 +40,24 @@ namespace osu.Android
     {
         private static readonly string[] osu_url_schemes = { "osu", "osump" };
 
+        private ScreenOrientation defaultOrientation = ScreenOrientation.Unspecified;
+
         /// <summary>
         /// The default screen orientation.
         /// </summary>
-        /// <remarks>Adjusted on startup to match expected UX for the current device type (phone/tablet).</remarks>
-        public ScreenOrientation DefaultOrientation = ScreenOrientation.Unspecified;
+        /// <remarks>Adjusted to match expected UX for the current device type (phone/tablet).</remarks>
+        public ScreenOrientation DefaultOrientation
+        {
+            get => defaultOrientation;
+            private set
+            {
+                defaultOrientation = value;
+
+                // don't change the underlying orientation if it's locked by GameplayScreenRotationLocker.
+                if (RequestedOrientation != ScreenOrientation.Locked)
+                    RequestedOrientation = value;
+            }
+        }
 
         private OsuGameAndroid game;
 
@@ -63,20 +72,8 @@ namespace osu.Android
             // reference: https://developer.android.com/reference/android/app/Activity#onNewIntent(android.content.Intent)
             handleIntent(Intent);
 
-            Debug.Assert(Window != null);
-
-            Window.AddFlags(WindowManagerFlags.Fullscreen);
-            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
-
-            Debug.Assert(WindowManager?.DefaultDisplay != null);
-            Debug.Assert(Resources?.DisplayMetrics != null);
-
-            Point displaySize = new Point();
-            WindowManager.DefaultDisplay.GetSize(displaySize);
-            float smallestWidthDp = Math.Min(displaySize.X, displaySize.Y) / Resources.DisplayMetrics.Density;
-            bool isTablet = smallestWidthDp >= 600f;
-
-            RequestedOrientation = DefaultOrientation = isTablet ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape;
+            IsTablet.BindValueChanged(isTablet =>
+                DefaultOrientation = isTablet.NewValue ? ScreenOrientation.FullUser : ScreenOrientation.SensorLandscape, true);
         }
 
         protected override void OnNewIntent(Intent intent) => handleIntent(intent);
