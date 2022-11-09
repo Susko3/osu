@@ -66,6 +66,7 @@ body:
 
         The places to find the logs on mobile platforms are as follows:
           - *On Android*, navigate to `Android/data/sh.ppy.osulazer/files/logs` using a file browser app.
+            - Android 11 and above require using a third-party file browser (like [Total Commander](https://play.google.com/store/apps/details?id=com.ghisler.android.TotalCommander)) to access log files.
           - *On iOS*, connect your device to a PC and copy the `logs` directory from the app's document storage using iTunes. (https://support.apple.com/en-us/HT201301#copy-to-computer)
 
         ---
