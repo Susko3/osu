@@ -26,11 +26,15 @@ namespace osu.Game.Overlays.Settings.Sections.General
             frameworkLocale = frameworkConfig.GetBindable<string>(FrameworkSetting.Locale);
             localisationParameters = localisation.CurrentParameters.GetBoundCopy();
 
+            if (!LanguageExtensions.TryParseCultureCode(localisation.SystemDefaultLocaleMapping?.Name ?? string.Empty, out var defaultLanguage))
+                defaultLanguage = Language.en;
+
             Children = new Drawable[]
             {
                 languageSelection = new SettingsEnumDropdown<Language>
                 {
                     LabelText = GeneralSettingsStrings.LanguageDropdown,
+                    Current = { Default = defaultLanguage }
                 },
                 new SettingsCheckbox
                 {
