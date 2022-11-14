@@ -21,7 +21,7 @@ namespace osu.Game.Localisation
 
         public ResourceManagerLocalisationStore(string cultureCode)
         {
-            EffectiveCulture = new CultureInfo(cultureCode);
+            UICulture = new CultureInfo(cultureCode);
         }
 
         public void Dispose()
@@ -67,7 +67,7 @@ namespace osu.Game.Localisation
 
                 try
                 {
-                    return manager.GetString(key, EffectiveCulture);
+                    return manager.GetString(key, UICulture);
                 }
                 catch (MissingManifestResourceException)
                 {
@@ -93,6 +93,6 @@ namespace osu.Game.Localisation
             throw new NotImplementedException();
         }
 
-        public CultureInfo EffectiveCulture { get; }
+        public CultureInfo UICulture { get; }
     }
 }

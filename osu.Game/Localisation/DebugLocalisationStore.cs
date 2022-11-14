@@ -21,7 +21,7 @@ namespace osu.Game.Localisation
 
         public IEnumerable<string> GetAvailableResources() => throw new NotImplementedException();
 
-        public CultureInfo EffectiveCulture { get; } = CultureInfo.CurrentCulture;
+        public CultureInfo UICulture { get; } = CultureInfo.CurrentCulture;
 
         public void Dispose()
         {

@@ -48,7 +48,7 @@ namespace osu.Game.Extensions
             if (localisationParameters.Store != null)
             {
                 // startup case, locale not explicitly set, or the set language was removed in an update
-                if (TryParseCultureCode(localisationParameters.Store.EffectiveCulture.Name, out language))
+                if (TryParseCultureCode(localisationParameters.Store.UICulture.Name, out language))
                     return language;
             }
 
