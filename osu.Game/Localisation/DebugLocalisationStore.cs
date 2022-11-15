@@ -13,9 +13,9 @@ namespace osu.Game.Localisation
 {
     public class DebugLocalisationStore : ILocalisationStore
     {
-        public string Get(string lookup) => $@"[[{lookup.Substring(lookup.LastIndexOf('.') + 1)}]]";
+        public string? Get(string lookup) => $@"[[{lookup.Substring(lookup.LastIndexOf('.') + 1)}]]";
 
-        public Task<string> GetAsync(string lookup, CancellationToken cancellationToken = default) => Task.FromResult(Get(lookup));
+        public Task<string?> GetAsync(string lookup, CancellationToken cancellationToken = default) => Task.FromResult(Get(lookup));
 
         public Stream GetStream(string name) => throw new NotImplementedException();
 

@@ -96,13 +96,6 @@ namespace osu.Game.Online.Leaderboards
             };
         }
 
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-
-            prefer24HourTime.BindValueChanged(_ => updateTimestampLabel(), true);
-        }
-
         private ScoreInfo? displayedScore;
 
         public void SetContent(ScoreInfo score)
@@ -135,11 +128,7 @@ namespace osu.Game.Online.Leaderboards
         private void updateTimestampLabel()
         {
             if (displayedScore != null)
-            {
-                timestampLabel.Text = prefer24HourTime.Value
-                    ? $"Played on {displayedScore.Date.ToLocalTime():d MMMM yyyy HH:mm}"
-                    : $"Played on {displayedScore.Date.ToLocalTime():d MMMM yyyy h:mm tt}";
-            }
+                timestampLabel.Text = LocalisableString.Interpolate($"Played on {displayedScore.Date.ToLocalTime():f}");
         }
 
         protected override void PopIn() => this.FadeIn(20, Easing.OutQuint);

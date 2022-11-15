@@ -612,6 +612,8 @@ namespace osu.Game
             return importTask;
         }
 
+        protected override LocalisationManager CreateLocalisationManager(FrameworkConfigManager config) => new OsuLocalisationManager(Host, config, LocalConfig);
+
         protected virtual Loader CreateLoader() => new Loader();
 
         protected virtual UpdateManager CreateUpdateManager() => new UpdateManager();

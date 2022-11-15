@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Online.API.Requests.Responses;
 
@@ -98,12 +99,12 @@ namespace osu.Game.Overlays.Dashboard.Home.News
                     Margin = new MarginPadding { Vertical = 5 }
                 };
 
-                textFlow.AddText($"{date:dd}", t =>
+                textFlow.AddText(LocalisableString.Interpolate($"{date:dd}"), t =>
                 {
                     t.Font = OsuFont.GetFont(size: 14, weight: FontWeight.Bold);
                 });
 
-                textFlow.AddText($"{date: MMM}", t =>
+                textFlow.AddText(LocalisableString.Interpolate($" {date:MMM}"), t => // TODO: must be MMM
                 {
                     t.Font = OsuFont.GetFont(size: 14, weight: FontWeight.Regular);
                 });

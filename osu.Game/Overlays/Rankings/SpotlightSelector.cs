@@ -131,7 +131,7 @@ namespace osu.Game.Overlays.Rankings
             participantsColumn.Value = response.Spotlight.Participants?.ToLocalisableString(@"N0") ?? default;
         }
 
-        private LocalisableString dateToString(DateTimeOffset date) => date.ToLocalisableString(@"yyyy-MM-dd");
+        private LocalisableString dateToString(DateTimeOffset date) => date.ToLocalisableString(@"d");
 
         private class InfoColumn : FillFlowContainer
         {

@@ -12,6 +12,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
@@ -111,7 +112,7 @@ namespace osu.Game.Overlays.Changelog
 
                     existing.Add(date = new OsuSpriteText
                     {
-                        Text = Build.CreatedAt.Date.ToString("dd MMMM yyyy"),
+                        Text = LocalisableString.Interpolate($"{Build.CreatedAt.Date:D}"),
                         Font = OsuFont.GetFont(weight: FontWeight.Regular, size: 14),
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.TopCentre,

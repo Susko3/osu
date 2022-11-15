@@ -7,6 +7,7 @@ using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 
@@ -80,7 +81,7 @@ namespace osu.Game.Overlays.Chat
                                     {
                                         Anchor = Anchor.CentreRight,
                                         Origin = Anchor.CentreRight,
-                                        Text = time.ToLocalTime().ToLocalisableString(@"dd MMMM yyyy").ToUpper(),
+                                        Text = LocalisableString.Interpolate($"{time.ToLocalTime():D}").ToUpper(),
                                         Font = OsuFont.Torus.With(size: TextSize, weight: FontWeight.SemiBold),
                                         Colour = colourProvider?.Content1 ?? Colour4.White,
                                     },

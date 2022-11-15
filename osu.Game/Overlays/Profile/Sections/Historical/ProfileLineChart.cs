@@ -196,7 +196,7 @@ namespace osu.Game.Overlays.Profile.Sections.Historical
             {
                 Origin = Anchor.CentreLeft,
                 RelativePositionAxes = Axes.X,
-                Text = value.ToLocalisableString("MMM yyyy"),
+                Text = LocalisableString.Interpolate($"{value:%y}"), // TODO: needs to be MMM
                 Font = OsuFont.GetFont(size: 12, weight: FontWeight.SemiBold),
                 Rotation = 45,
                 X = x

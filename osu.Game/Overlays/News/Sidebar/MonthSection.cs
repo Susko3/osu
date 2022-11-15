@@ -19,6 +19,7 @@ using osu.Framework.Graphics.Sprites;
 using System.Diagnostics;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
+using osu.Framework.Localisation;
 using osu.Framework.Platform;
 
 namespace osu.Game.Overlays.News.Sidebar
@@ -99,7 +100,7 @@ namespace osu.Game.Overlays.News.Sidebar
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         Font = OsuFont.GetFont(size: 12, weight: FontWeight.Bold),
-                        Text = date.ToString("MMM yyyy")
+                        Text = LocalisableString.Interpolate($"{date:y}")
                     },
                     icon = new SpriteIcon
                     {
