@@ -29,7 +29,7 @@ namespace osu.Game.Localisation
 
             shortYearMonth = culture.DateTimeFormat.YearMonthPattern.Replace(@"MMMM", @"MMM");
             shortMonthDay = culture.DateTimeFormat.MonthDayPattern.Replace(@"MMMM", @"MMM");
-            weekdaylessLongDate = removeDayOfWeek(culture.DateTimeFormat.LongDatePattern);
+            weekdaylessLongDate = getLongDateWithoutDayOfWeek(culture.DateTimeFormat);
             weekdaylessShorterDate = weekdaylessLongDate.Replace(@"MMMM", @"MMM");
         }
 
@@ -69,17 +69,31 @@ namespace osu.Game.Localisation
 
         public override string ToString() => $@"{nameof(OsuFormatProvider)}(Culture={culture}, Prefer24HourTime={prefer24HourTime})";
 
+        private static string getLongDateWithoutDayOfWeek(DateTimeFormatInfo dateTimeFormat)
+        {
+            if (dateTimeFormat.LongDatePattern.Contains(@"ddd"))
+            {
+                return dateTimeFormat.GetAllDateTimePatterns('D').FirstOrDefault(f => !f.Contains(@"ddd"))
+                       ?? removeDayOfWeek(dateTimeFormat.LongDatePattern); // note that for windows languages, this will _never_ be hit.
+            }
+
+            return dateTimeFormat.LongDatePattern;
+        }
+
         private static string removeDayOfWeek(string dateFormat)
         {
-            return new StringBuilder(dateFormat)
-                   .Replace(@"dddd, ", string.Empty)
-                   .Replace(@"dddd ", string.Empty)
-                   .Replace(@"ddd, ", string.Empty)
-                   .Replace(@"ddd ", string.Empty)
-                   .Replace(@" dddd", string.Empty)
-                   .Replace(@" ddd", string.Empty)
-                   .Replace(@"dddd", string.Empty)
-                   .Replace(@"ddd", string.Empty).ToString();
+            var sb = new StringBuilder(dateFormat);
+
+            foreach (string separator in new[] { ", ", " ", "" })
+            {
+                foreach (string weekdayPattern in new[] { @"dddd", @"ddd" })
+                {
+                    sb.Replace(@$"{weekdayPattern}{separator}", string.Empty)
+                      .Replace(@$"{separator}{weekdayPattern}", string.Empty);
+                }
+            }
+
+            return sb.ToString();
         }
 
         private void customizeDateTimeFormat(DateTimeFormatInfo dateTimeFormat)
