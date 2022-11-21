@@ -121,22 +121,22 @@ namespace osu.Game.Localisation
 
         private static string convertTo24Hour(string timeFormat)
         {
-            return editNonQuotedParts(timeFormat, s
-                    => s.Replace(@"hh", @"HH")
-                        .Replace(@"h", @"HH")
-                        .Replace(@"tt ", string.Empty) // for ko-KR
-                        .Replace(@" tt", string.Empty)
-                        .Replace(@"t ", string.Empty)
-                        .Replace(@" t", string.Empty)
-                        .Replace(@"t", string.Empty)) // for zh-* (these have "tt", but "t" is used to cover the more general case)
+            return editNonQuotedParts(timeFormat, part
+                    => part.Replace(@"hh", @"HH")
+                           .Replace(@"h", @"HH")
+                           .Replace(@"tt ", string.Empty) // for ko-KR
+                           .Replace(@" tt", string.Empty)
+                           .Replace(@"t ", string.Empty)
+                           .Replace(@" t", string.Empty)
+                           .Replace(@"t", string.Empty)) // for zh-* (these have "tt", but "t" is used to cover the more general case)
                 .ToString();
         }
 
         private static string convertTo12Hour(string timeFormat, bool has12HourDesignators)
         {
-            var result = editNonQuotedParts(timeFormat, s
-                => s.Replace(@"HH", @"h")
-                    .Replace(@"H", @"h"));
+            var result = editNonQuotedParts(timeFormat, part
+                => part.Replace(@"HH", @"h")
+                       .Replace(@"H", @"h"));
 
             if (has12HourDesignators)
                 result.Append(@" tt");
