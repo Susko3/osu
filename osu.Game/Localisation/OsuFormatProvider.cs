@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,7 @@ namespace osu.Game.Localisation
             weekdaylessShorterDate = weekdaylessLongDate.Replace(@"MMMM", @"MMM");
         }
 
-        object? IFormatProvider.GetFormat(Type formatType)
+        object? IFormatProvider.GetFormat(Type? formatType)
         {
             if (formatType == typeof(ICustomFormatter))
                 return this;
@@ -41,9 +42,11 @@ namespace osu.Game.Localisation
             return culture.GetFormat(formatType);
         }
 
-        string ICustomFormatter.Format(string format, object? arg, IFormatProvider formatProvider)
+        string ICustomFormatter.Format(string? format, object? arg, IFormatProvider? formatProvider)
         {
-            if (arg is DateTimeOffset dateTime && format.Length == 1)
+            Debug.Assert(ReferenceEquals(formatProvider, this));
+
+            if (arg is DateTimeOffset dateTime && format?.Length == 1)
             {
                 switch (format[0])
                 {
@@ -53,10 +56,10 @@ namespace osu.Game.Localisation
                     case 'm':
                         return dateTime.ToString(shortMonthDay, culture);
 
-                    case 'A': // %D without day of week
+                    case 'A': // D without day of week
                         return dateTime.ToString(weekdaylessLongDate, culture);
 
-                    case 'a': // $d without day of week
+                    case 'a': // d without day of week
                         return dateTime.ToString(weekdaylessShorterDate, culture);
                 }
             }
