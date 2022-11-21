@@ -146,7 +146,7 @@ namespace osu.Game.Localisation
 
         private static IEnumerable<string> enumerateNonQuotedParts(string format)
         {
-            StringBuilder buffer = new StringBuilder();
+            StringBuilder nonQuotedBuffer = new StringBuilder();
 
             bool inQuote = false;
             char quote = '\'';
@@ -157,7 +157,7 @@ namespace osu.Game.Localisation
                 {
                     case '\'':
                     case '\"':
-                        if (inQuote && (quote == format[i]))
+                        if (inQuote && quote == format[i])
                         {
                             // we were in a quote and found a matching exit quote, so we are outside a quote now
                             inQuote = false;
@@ -165,9 +165,9 @@ namespace osu.Game.Localisation
                         else if (!inQuote)
                         {
                             // entered a quote, need to flush the unquoted buffer.
-                            yield return buffer.ToString();
+                            yield return nonQuotedBuffer.ToString();
 
-                            buffer.Clear();
+                            nonQuotedBuffer.Clear();
 
                             quote = format[i];
                             inQuote = true;
@@ -186,13 +186,13 @@ namespace osu.Game.Localisation
 
                     default:
                         if (!inQuote)
-                            buffer.Append(format[i]);
+                            nonQuotedBuffer.Append(format[i]);
                         break;
                 }
             }
 
-            if (buffer.Length > 0)
-                yield return buffer.ToString();
+            if (nonQuotedBuffer.Length > 0)
+                yield return nonQuotedBuffer.ToString();
         }
 
         private static StringBuilder editNonQuotedParts(string format, Func<StringBuilder, StringBuilder> editor)
@@ -209,7 +209,7 @@ namespace osu.Game.Localisation
                 {
                     case '\'':
                     case '\"':
-                        if (inQuote && (quote == format[i]))
+                        if (inQuote && quote == format[i])
                         {
                             // we were in a quote and found a matching exit quote, so we are outside a quote now
                             inQuote = false;
