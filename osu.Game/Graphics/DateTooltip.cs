@@ -70,7 +70,7 @@ namespace osu.Game.Graphics
         {
             DateTimeOffset localDate = date.ToLocalTime();
 
-            dateText.Text = LocalisableString.Interpolate($"{localDate:D} ");
+            dateText.Text = LocalisableString.Interpolate($"{localDate:A} ");
             timeText.Text = LocalisableString.Interpolate($"{localDate:T} UTC{localDate:%z}");
         }
 

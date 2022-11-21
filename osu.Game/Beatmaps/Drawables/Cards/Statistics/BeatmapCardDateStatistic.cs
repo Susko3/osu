@@ -18,7 +18,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Statistics
             this.dateTime = dateTime;
 
             Icon = FontAwesome.Regular.CheckCircle;
-            Text = LocalisableString.Interpolate($"{dateTime:%a}"); // TODO: needs short month format
+            Text = LocalisableString.Interpolate($"{dateTime:a}");
         }
 
         public override object TooltipContent => dateTime;

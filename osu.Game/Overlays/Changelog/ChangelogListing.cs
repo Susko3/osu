@@ -52,7 +52,7 @@ namespace osu.Game.Overlays.Changelog
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
                         Margin = new MarginPadding { Top = 20 },
-                        Text = LocalisableString.Interpolate($"{build.CreatedAt.Date:D}"),
+                        Text = LocalisableString.Interpolate($"{build.CreatedAt.Date:A}"),
                         Font = OsuFont.GetFont(weight: FontWeight.Regular, size: 24),
                     });
 

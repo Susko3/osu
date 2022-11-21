@@ -282,9 +282,11 @@ namespace osu.Game.Screens.Ranking.Expanded
         {
             public PlayedOnText(DateTimeOffset time)
             {
+                var localTime = time.ToLocalTime();
+
                 Anchor = Anchor.BottomCentre;
                 Origin = Anchor.BottomCentre;
-                Text = LocalisableString.Interpolate($"Played on {time.ToLocalTime():F}");
+                Text = LocalisableString.Interpolate($"Played on {localTime:A} {localTime:t}");
                 Font = OsuFont.GetFont(size: 10, weight: FontWeight.SemiBold);
             }
         }

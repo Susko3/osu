@@ -81,7 +81,7 @@ namespace osu.Game.Overlays.Chat
                                     {
                                         Anchor = Anchor.CentreRight,
                                         Origin = Anchor.CentreRight,
-                                        Text = LocalisableString.Interpolate($"{time.ToLocalTime():D}").ToUpper(),
+                                        Text = LocalisableString.Interpolate($"{time.ToLocalTime():A}").ToUpper(),
                                         Font = OsuFont.Torus.With(size: TextSize, weight: FontWeight.SemiBold),
                                         Colour = colourProvider?.Content1 ?? Colour4.White,
                                     },

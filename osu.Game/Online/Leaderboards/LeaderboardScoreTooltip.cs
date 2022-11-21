@@ -128,7 +128,10 @@ namespace osu.Game.Online.Leaderboards
         private void updateTimestampLabel()
         {
             if (displayedScore != null)
-                timestampLabel.Text = LocalisableString.Interpolate($"Played on {displayedScore.Date.ToLocalTime():f}");
+            {
+                var localTime = displayedScore.Date.ToLocalTime();
+                timestampLabel.Text = LocalisableString.Interpolate($"Played on {localTime:A} {localTime:T}");
+            }
         }
 
         protected override void PopIn() => this.FadeIn(20, Easing.OutQuint);
