@@ -98,26 +98,26 @@ namespace osu.Game.Localisation
 
         private void customizeDateTimeFormat(DateTimeFormatInfo dateTimeFormat)
         {
+            bool has12HourDesignators = !string.IsNullOrEmpty(dateTimeFormat.AMDesignator) && !string.IsNullOrEmpty(dateTimeFormat.PMDesignator);
+
+            if (is24HourTime(dateTimeFormat.LongTimePattern) != prefer24HourTime)
+            {
+                dateTimeFormat.LongTimePattern = prefer24HourTime
+                    ? dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.LongTimePattern)
+                    : dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.LongTimePattern, has12HourDesignators);
+            }
+
             if (is24HourTime(dateTimeFormat.ShortTimePattern) != prefer24HourTime)
             {
-                if (prefer24HourTime)
-                {
-                    dateTimeFormat.LongTimePattern = dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.LongTimePattern);
-                    dateTimeFormat.ShortTimePattern = dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.ShortTimePattern);
-                }
-                else
-                {
-                    bool has12HourDesignators = !string.IsNullOrEmpty(dateTimeFormat.AMDesignator) && !string.IsNullOrEmpty(dateTimeFormat.PMDesignator);
-
-                    dateTimeFormat.LongTimePattern = dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(s => !is24HourTime(s))
-                                                     ?? convertTo12Hour(dateTimeFormat.LongTimePattern, has12HourDesignators);
-                    dateTimeFormat.ShortTimePattern = dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(s => !is24HourTime(s))
-                                                      ?? convertTo12Hour(dateTimeFormat.ShortTimePattern, has12HourDesignators);
-                }
+                dateTimeFormat.ShortTimePattern = prefer24HourTime
+                    ? dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.ShortTimePattern)
+                    : dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.ShortTimePattern, has12HourDesignators);
             }
         }
 
-        private bool is24HourTime(string timeFormat) => !enumerateNonQuotedParts(timeFormat).Any(s => s.Contains('t') || s.Contains('h'));
+        private static bool is24HourTime(string timeFormat) => !enumerateNonQuotedParts(timeFormat).Any(s => s.Contains('h'));
+
+        private static bool is12HourTime(string timeFormat) => !is24HourTime(timeFormat);
 
         private static string convertTo24Hour(string timeFormat)
         {
