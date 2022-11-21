@@ -43,7 +43,7 @@ namespace osu.Game.Localisation
 
         public string Format(string format, object? arg, IFormatProvider formatProvider)
         {
-            if (arg is DateTime dateTime && format.Length == 0)
+            if (arg is DateTimeOffset dateTime && format.Length == 1)
             {
                 switch (format[0])
                 {
