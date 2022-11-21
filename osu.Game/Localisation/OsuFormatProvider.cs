@@ -33,15 +33,15 @@ namespace osu.Game.Localisation
             weekdaylessShorterDate = weekdaylessLongDate.Replace(@"MMMM", @"MMM");
         }
 
-        public object GetFormat(Type formatType)
+        object? IFormatProvider.GetFormat(Type formatType)
         {
             if (formatType == typeof(ICustomFormatter))
                 return this;
 
-            return culture;
+            return culture.GetFormat(formatType);
         }
 
-        public string Format(string format, object? arg, IFormatProvider formatProvider)
+        string ICustomFormatter.Format(string format, object? arg, IFormatProvider formatProvider)
         {
             if (arg is DateTimeOffset dateTime && format.Length == 1)
             {
