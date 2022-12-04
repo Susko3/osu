@@ -99,7 +99,6 @@ namespace osu.Game.Overlays.Settings.Sections.Graphics
                 resolutionDropdown = new ResolutionSettingsDropdown
                 {
                     LabelText = GraphicsSettingsStrings.Resolution,
-                    ShowsDefaultIndicator = false,
                     ItemSource = resolutions,
                     Current = sizeFullscreen
                 },

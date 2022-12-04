@@ -7,10 +7,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Game.Localisation
 {
-    public sealed class OsuFormatProvider : IFormatProvider, ICustomFormatter
+    public class OsuFormatProvider : IFormatProvider, ICustomFormatter
     {
         private readonly CultureInfo culture;
 
@@ -18,20 +19,20 @@ namespace osu.Game.Localisation
 
         private readonly string shortYearMonth;
         private readonly string shortMonthDay;
-        private readonly string weekdaylessShorterDate;
-        private readonly string weekdaylessLongDate;
+        private readonly string abbreviatedLongDate;
+
+        private static readonly DateTimeOffset sample_date_time = new DateTimeOffset(2020, 4, 9, 19, 27, 3, new TimeSpan(1, 30, 0));
 
         public OsuFormatProvider(CultureInfo culture, bool prefer24HourTime)
         {
             this.culture = culture;
             this.prefer24HourTime = prefer24HourTime;
 
-            customizeDateTimeFormat(culture.DateTimeFormat, prefer24HourTime, culture.Name.StartsWith(@"ja", StringComparison.OrdinalIgnoreCase));
+            customizeDateTimeFormat(culture.DateTimeFormat);
 
             shortYearMonth = culture.DateTimeFormat.YearMonthPattern.Replace(@"MMMM", @"MMM");
             shortMonthDay = culture.DateTimeFormat.MonthDayPattern.Replace(@"MMMM", @"MMM");
-            weekdaylessLongDate = getLongDateWithoutDayOfWeek(culture.DateTimeFormat);
-            weekdaylessShorterDate = weekdaylessLongDate.Replace(@"MMMM", @"MMM");
+            abbreviatedLongDate = culture.DateTimeFormat.LongDatePattern.Replace(@"MMMM", @"MMM");
         }
 
         object? IFormatProvider.GetFormat(Type? formatType)
@@ -56,11 +57,8 @@ namespace osu.Game.Localisation
                     case 'm':
                         return dateTime.ToString(shortMonthDay, culture);
 
-                    case 'A': // D without day of week
-                        return dateTime.ToString(weekdaylessLongDate, culture);
-
-                    case 'a': // d without day of week
-                        return dateTime.ToString(weekdaylessShorterDate, culture);
+                    case 'A':
+                        return dateTime.ToString(abbreviatedLongDate, culture);
                 }
             }
 
@@ -72,18 +70,32 @@ namespace osu.Game.Localisation
 
         public override string ToString() => $@"{nameof(OsuFormatProvider)}(Culture={culture}, Prefer24HourTime={prefer24HourTime})";
 
-        private static string getLongDateWithoutDayOfWeek(DateTimeFormatInfo dateTimeFormat)
+        private void customizeDateTimeFormat(DateTimeFormatInfo dateTimeFormat)
         {
-            if (dateTimeFormat.LongDatePattern.Contains(@"ddd"))
+            bool has12HourDesignators = !string.IsNullOrEmpty(dateTimeFormat.AMDesignator) && !string.IsNullOrEmpty(dateTimeFormat.PMDesignator);
+
+            if (is24HourTime(dateTimeFormat.LongTimePattern) != prefer24HourTime)
             {
-                return dateTimeFormat.GetAllDateTimePatterns('D').FirstOrDefault(f => !f.Contains(@"ddd"))
-                       ?? removeDayOfWeek(dateTimeFormat.LongDatePattern); // note that for windows languages, this will _never_ be hit.
+                dateTimeFormat.LongTimePattern = prefer24HourTime
+                    ? dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.LongTimePattern)
+                    : dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.LongTimePattern, has12HourDesignators);
             }
 
-            return dateTimeFormat.LongDatePattern;
+            if (is24HourTime(dateTimeFormat.ShortTimePattern) != prefer24HourTime)
+            {
+                dateTimeFormat.ShortTimePattern = prefer24HourTime
+                    ? dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.ShortTimePattern)
+                    : dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.ShortTimePattern, has12HourDesignators);
+            }
+
+            if (dateTimeFormat.LongDatePattern.Contains(@"ddd"))
+            {
+                dateTimeFormat.LongDatePattern = dateTimeFormat.GetAllDateTimePatterns('D').FirstOrDefault(f => !f.Contains(@"ddd"))
+                                                 ?? removeDayOfWeek(dateTimeFormat.LongDatePattern); // note that for windows languages, this will _never_ be hit.
+            }
         }
 
-        private static string removeDayOfWeek(string dateFormat)
+        private string removeDayOfWeek(string dateFormat)
         {
             var sb = new StringBuilder(dateFormat);
 
@@ -96,35 +108,17 @@ namespace osu.Game.Localisation
                 }
             }
 
+            logFormatChange(@"removing day of week", dateFormat, sb.ToString());
             return sb.ToString();
-        }
-
-        private static void customizeDateTimeFormat(DateTimeFormatInfo dateTimeFormat, bool prefer24HourTime, bool is12HourDesignatorBeforeTime)
-        {
-            bool has12HourDesignators = !string.IsNullOrEmpty(dateTimeFormat.AMDesignator) && !string.IsNullOrEmpty(dateTimeFormat.PMDesignator);
-
-            if (is24HourTime(dateTimeFormat.LongTimePattern) != prefer24HourTime)
-            {
-                dateTimeFormat.LongTimePattern = prefer24HourTime
-                    ? dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.LongTimePattern)
-                    : dateTimeFormat.GetAllDateTimePatterns('T').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.LongTimePattern, has12HourDesignators, is12HourDesignatorBeforeTime);
-            }
-
-            if (is24HourTime(dateTimeFormat.ShortTimePattern) != prefer24HourTime)
-            {
-                dateTimeFormat.ShortTimePattern = prefer24HourTime
-                    ? dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is24HourTime) ?? convertTo24Hour(dateTimeFormat.ShortTimePattern)
-                    : dateTimeFormat.GetAllDateTimePatterns('t').FirstOrDefault(is12HourTime) ?? convertTo12Hour(dateTimeFormat.ShortTimePattern, has12HourDesignators, is12HourDesignatorBeforeTime);
-            }
         }
 
         private static bool is24HourTime(string timeFormat) => !enumerateNonQuotedParts(timeFormat).Any(s => s.Contains('h'));
 
         private static bool is12HourTime(string timeFormat) => !is24HourTime(timeFormat);
 
-        private static string convertTo24Hour(string timeFormat)
+        private string convertTo24Hour(string timeFormat)
         {
-            return editNonQuotedParts(timeFormat, part
+            string newFormat = editNonQuotedParts(timeFormat, part
                     => part.Replace(@"hh", @"HH")
                            .Replace(@"h", @"HH")
                            .Replace(@"tt ", string.Empty) // for ko-KR
@@ -133,9 +127,12 @@ namespace osu.Game.Localisation
                            .Replace(@" t", string.Empty)
                            .Replace(@"t", string.Empty)) // for zh-* (these have "tt", but "t" is used to cover the more general case)
                 .ToString();
+
+            logFormatChange("converting to 24 hour time", timeFormat, newFormat);
+            return newFormat;
         }
 
-        private static string convertTo12Hour(string timeFormat, bool has12HourDesignators, bool is12HourIndicatorBeforeTime)
+        private string convertTo12Hour(string timeFormat, bool has12HourDesignators)
         {
             var result = editNonQuotedParts(timeFormat, part
                 => part.Replace(@"HH", @"h")
@@ -143,12 +140,13 @@ namespace osu.Game.Localisation
 
             if (has12HourDesignators)
             {
-                if (is12HourIndicatorBeforeTime)
+                if (culture.Name.StartsWith(@"ja", StringComparison.OrdinalIgnoreCase))
                     result.Insert(0, @"tt");
                 else
                     result.Append(@" tt");
             }
 
+            logFormatChange(@"converting to 12 hour time", timeFormat, result.ToString());
             return result.ToString();
         }
 
@@ -250,6 +248,8 @@ namespace osu.Game.Localisation
                     default:
                         if (!inQuote)
                             buffer.Append(format[i]);
+                        else
+                            final.Append(format[i]);
                         break;
                 }
             }
@@ -258,6 +258,11 @@ namespace osu.Game.Localisation
                 final.Append(editor(buffer));
 
             return final;
+        }
+
+        private void logFormatChange(string message, string oldFormat, string newFormat)
+        {
+            Logger.Log($"{ToString()}: {message} - '{oldFormat}' -> '{newFormat}', '{sample_date_time.ToString(oldFormat, culture)}' -> '{sample_date_time.ToString(newFormat, culture)}'");
         }
     }
 }
