@@ -70,6 +70,7 @@ namespace osu.Game.Tests.Visual.Online
             addMessageWithChecks("00:12:345 - Test?", expectedActions: LinkAction.OpenEditorTimestamp);
             addMessageWithChecks("00:12:345 (1,2) - Test?", expectedActions: LinkAction.OpenEditorTimestamp);
             addMessageWithChecks($"{OsuGameBase.OSU_PROTOCOL}edit/00:12:345 - Test?", expectedActions: LinkAction.OpenEditorTimestamp);
+            addMessageWithChecks($"{OsuGameBase.OSU_PROTOCOL}edit/00:12:345 (1,2) - Test?", expectedActions: LinkAction.OpenEditorTimestamp);
             addMessageWithChecks("Wiki link for tasty [[Performance Points]]", expectedActions: LinkAction.OpenWiki);
             addMessageWithChecks("(osu forums)[https://dev.ppy.sh/forum] (old link format)", expectedActions: LinkAction.External);
             addMessageWithChecks("[https://dev.ppy.sh/home New site] (new link format)", expectedActions: LinkAction.External);
