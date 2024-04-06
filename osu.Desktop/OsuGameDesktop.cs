@@ -22,7 +22,7 @@ using osu.Game.IPC;
 using osu.Game.Online.Multiplayer;
 using osu.Game.Performance;
 using osu.Game.Utils;
-using SDL2;
+using SDL;
 
 namespace osu.Desktop
 {
@@ -172,20 +172,21 @@ namespace osu.Desktop
 
         private class SDL2BatteryInfo : BatteryInfo
         {
-            public override double? ChargeLevel
+            public override unsafe double? ChargeLevel
             {
                 get
                 {
-                    SDL.SDL_GetPowerInfo(out _, out int percentage);
+                    int percent;
+                    SDL3.SDL_GetPowerInfo(null, &percent);
 
-                    if (percentage == -1)
+                    if (percent == -1)
                         return null;
 
-                    return percentage / 100.0;
+                    return percent / 100.0;
                 }
             }
 
-            public override bool OnBattery => SDL.SDL_GetPowerInfo(out _, out _) == SDL.SDL_PowerState.SDL_POWERSTATE_ON_BATTERY;
+            public override unsafe bool OnBattery => SDL3.SDL_GetPowerInfo(null, null) == SDL_PowerState.SDL_POWERSTATE_ON_BATTERY;
         }
     }
 }

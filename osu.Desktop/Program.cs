@@ -13,7 +13,7 @@ using osu.Framework.Platform;
 using osu.Game;
 using osu.Game.IPC;
 using osu.Game.Tournament;
-using SDL2;
+using SDL;
 using Squirrel;
 
 namespace osu.Desktop
@@ -29,7 +29,7 @@ namespace osu.Desktop
         private static LegacyTcpIpcProvider? legacyIpc;
 
         [STAThread]
-        public static void Main(string[] args)
+        public static unsafe void Main(string[] args)
         {
             /*
              * WARNING: DO NOT PLACE **ANY** CODE ABOVE THE FOLLOWING BLOCK!
@@ -56,11 +56,11 @@ namespace osu.Desktop
                     // disabling it ourselves.
                     // We could also better detect compatibility mode if required:
                     // https://stackoverflow.com/questions/10744651/how-i-can-detect-if-my-application-is-running-under-compatibility-mode#comment58183249_10744730
-                    SDL.SDL_ShowSimpleMessageBox(SDL.SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
-                        "Your operating system is too old to run osu!",
-                        "This version of osu! requires at least Windows 8.1 to run.\n"
-                        + "Please upgrade your operating system or consider using an older version of osu!.\n\n"
-                        + "If you are running a newer version of windows, please check you don't have \"Compatibility mode\" turned on for osu!", IntPtr.Zero);
+                    SDL3.SDL_ShowSimpleMessageBox(SDL_MessageBoxFlags.SDL_MESSAGEBOX_ERROR,
+                        "Your operating system is too old to run osu!"u8,
+                        "This version of osu! requires at least Windows 8.1 to run.\n"u8
+                        + "Please upgrade your operating system or consider using an older version of osu!.\n\n"u8
+                        + "If you are running a newer version of windows, please check you don't have \"Compatibility mode\" turned on for osu!"u8, null);
                     return;
                 }
 
