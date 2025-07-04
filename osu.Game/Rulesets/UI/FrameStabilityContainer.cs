@@ -3,15 +3,21 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Input;
+using osu.Framework.Input.Events;
 using osu.Framework.Logging;
+using osu.Framework.Platform.SDL3;
 using osu.Framework.Timing;
 using osu.Game.Input.Handlers;
 using osu.Game.Screens.Play;
+using SDL;
+using Logger = osu.Framework.Logging.Logger;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -21,7 +27,7 @@ namespace osu.Game.Rulesets.UI
     /// </summary>
     [Cached(typeof(IGameplayClock))]
     [Cached(typeof(IFrameStableClock))]
-    public sealed partial class FrameStabilityContainer : Container, IHasReplayHandler, IFrameStableClock
+    public sealed partial class FrameStabilityContainer : PassThroughInputManager, IHasReplayHandler, IFrameStableClock
     {
         public ReplayInputHandler? ReplayInputHandler { get; set; }
 
@@ -101,6 +107,31 @@ namespace osu.Game.Rulesets.UI
             Clock = this;
         }
 
+        private long lastUpdate;
+
+        protected override bool Handle(UIEvent e)
+        {
+            if (GlobalEventTimestamps.LastTimestamp > 0)
+            {
+                double desired = CurrentTime + getDeltaFromEvent();
+
+                if (desired > CurrentTime)
+                {
+                    updateClock(desired);
+                    lastUpdate = GlobalEventTimestamps.GetTimestamp();
+                }
+            }
+
+            return base.Handle(e);
+        }
+
+        private double getDeltaFromEvent()
+        {
+            long eventTimestamp = Interlocked.Exchange(ref GlobalEventTimestamps.LastTimestamp, 0);
+            double delta = GlobalEventTimestamps.GetDelta(lastUpdate, eventTimestamp);
+            return Math.Max(delta, 0.0);
+        }
+
         public override bool UpdateSubTree()
         {
             stopwatch.Restart();
@@ -109,7 +140,8 @@ namespace osu.Game.Rulesets.UI
             {
                 // update clock is always trying to approach the aim time.
                 // it should be provided as the original value each loop.
-                updateClock();
+                updateClock(referenceClock.CurrentTime);
+                lastUpdate = GlobalEventTimestamps.GetTimestamp();
 
                 if (state == PlaybackState.NotValid)
                     break;
@@ -121,7 +153,7 @@ namespace osu.Game.Rulesets.UI
             return true;
         }
 
-        private void updateClock()
+        private void updateClock(double currentTime)
         {
             if (waitingOnFrames.Value)
             {
@@ -139,7 +171,7 @@ namespace osu.Game.Rulesets.UI
                 state = PlaybackState.Valid;
             }
 
-            double proposedTime = referenceClock.CurrentTime;
+            double proposedTime = currentTime;
 
             if (FrameStablePlayback)
                 // if we require frame stability, the proposed time will be adjusted to move at most one known
@@ -159,12 +191,12 @@ namespace osu.Game.Rulesets.UI
             //
             // It basically says that "while we're running in frame stable mode, and don't have a replay attached,
             // time should never go backwards". If it does, we stop running gameplay until it returns to normal.
-            if (!hasReplayAttached && FrameStablePlayback && proposedTime > referenceClock.CurrentTime && !AllowBackwardsSeeks)
+            if (!hasReplayAttached && FrameStablePlayback && proposedTime > currentTime && !AllowBackwardsSeeks)
             {
                 if (lastBackwardsSeekLogTime == null || Math.Abs(Clock.CurrentTime - lastBackwardsSeekLogTime.Value) > 1000)
                 {
                     lastBackwardsSeekLogTime = Clock.CurrentTime;
-                    Logger.Log($"Denying backwards seek during gameplay (reference: {referenceClock.CurrentTime:N2} stable: {proposedTime:N2})");
+                    Logger.Log($"Denying backwards seek during gameplay (reference: {currentTime:N2} stable: {proposedTime:N2})");
                 }
 
                 state = PlaybackState.NotValid;
@@ -176,7 +208,7 @@ namespace osu.Game.Rulesets.UI
             if (state == PlaybackState.Valid && proposedTime != manualClock.CurrentTime)
                 direction = proposedTime >= manualClock.CurrentTime ? 1 : -1;
 
-            double timeBehind = Math.Abs(proposedTime - referenceClock.CurrentTime);
+            double timeBehind = Math.Abs(proposedTime - currentTime);
 
             isCatchingUp.Value = timeBehind > 200;
             waitingOnFrames.Value = hasReplayAttached && state == PlaybackState.NotValid;
